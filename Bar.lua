@@ -7,6 +7,7 @@ function Bar:init(x, y, width, height)
     self.width = width
     self.height = height
 
+    self.vel = 200
     self.dy = 0
 end
 

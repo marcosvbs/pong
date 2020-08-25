@@ -7,8 +7,8 @@ function Ball:init(x, y, width, height)
     self.width = width
     self.height = height
 
-    self.dx = math.random(2) == 1 and -100 or 100
-    self.dy = math.random(-50, 50)
+    self.dx = 100
+    self.dy = math.random(-100, 100)
     
 end
 
@@ -28,12 +28,13 @@ function Ball:collides(box)
 
 end
 
+-- Resets ball's location and velocity 
 function Ball:reset()
 
     self.x = VIRTUAL_WIDTH / 2 - 2
     self.y = VIRTUAL_HEIGHT / 2 - 2
 
-    self.dx = math.random(2) == 1 and -100 or 100
+    self.dx = math.random() == 1 and -self.dx or self.dx
     self.dy = math.random(-50, 50)
 
 end

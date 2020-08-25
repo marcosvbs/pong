@@ -1,5 +1,6 @@
 Class = require 'class'
 push = require 'push'
+gameController = require 'gameController'
 
 require 'Ball'
 require 'Bar'
@@ -10,16 +11,27 @@ WINDOW_HEIGHT = 768 --720
 VIRTUAL_WIDTH = 432
 VIRTUAL_HEIGHT = 243  
 
-BAR_SPEED = 200
+-- Text in game
+welcomeMessage = "Welcome to pong!"
+playMessage = "Press enter to play..."
+serveMessage = "Press enter to serve..."
+restartMessage = "Press enter to restart..."
 
 --[[
     Runs when the game starts up, only once. Initialize the game. 
 ]]
 function love.load()
 
-    math.randomseed(os.time())
-
     love.graphics.setDefaultFilter('nearest', 'nearest')
+
+    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
+        fullscreen = true,
+        vsync = true,
+        resizable = true
+    })
+
+    -- Creates a random seed based on the time
+    math.randomseed(os.time())
 
     -- Set a title to the game's window
     love.window.setTitle('Pong')
@@ -29,7 +41,7 @@ function love.load()
     scoreFont = love.graphics.newFont('04B03_font.TTF', 32)
     victoryFont = love.graphics.newFont('04B03_font.TTF', 24)
 
-    -- Initialize the game's sounds
+    -- Creates an object with the game's sounds
     sounds = {
         ['ball_hit_bar'] = love.audio.newSource('ball_hit_bar.wav', 'static'),
         ['point_scored'] = love.audio.newSource('point_scored.wav', 'static'),
@@ -40,30 +52,27 @@ function love.load()
     playerOneScore = 0
     playerTwoScore = 0
 
-    servingPlayer = math.random(2) == 1 and 1 or 2
+    -- Generates a 0 or 1 indicating who is the turn player
+    servingPlayer = math.random(1, 2)
 
     winningPlayer = 0
 
-    -- Creates the bars object
+    -- Creates and places the bar objects
     barOne = Bar(20, 20, 5, 20)
     barTwo = Bar(VIRTUAL_WIDTH - 25, VIRTUAL_HEIGHT - 40, 5, 20)
 
-    -- Creates the ball object
+    -- Creates and places the ball object
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT/2 - 2, 4, 4)
 
+    --[[ servingPlayer(servingPlayer, ball) ]]
     if servingPlayer == 1 then
-        ball.dx = 100
+        ball.dx = ball.dx
     else
-        ball.dx = -100
+        ball.dx = -ball.dx
     end
 
     gameState = 'start'
 
-    push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
-        fullscreen = true,
-        vsync = true,
-        resizable = true
-    })
 end
 
 function love.resize(width, height)
@@ -74,6 +83,7 @@ function love.update(dt)
 
     if gameState == 'play' then
 
+        -- Win condition for the player two
         if ball.x <= 0 then
             playerTwoScore = playerTwoScore + 1 
             servingPlayer = 1
@@ -88,6 +98,7 @@ function love.update(dt)
             end
         end
 
+        -- Win condition for the player one
         if ball.x >= VIRTUAL_WIDTH - 4 then
             playerOneScore = playerOneScore + 1 
             servingPlayer = 2
@@ -136,25 +147,8 @@ function love.update(dt)
     barOne:update(dt)
     barTwo:update(dt)
 
-    -- Player 1 movement
-    if love.keyboard.isDown('w') then 
-        barOne.dy = - BAR_SPEED
-    
-    elseif love.keyboard.isDown('s') then 
-        barOne.dy = BAR_SPEED
-    else
-        barOne.dy = 0
-    end
-
-    -- Player 2 movement
-    if love.keyboard.isDown('up') then 
-        barTwo.dy = - BAR_SPEED
-    
-    elseif love.keyboard.isDown('down') then 
-        barTwo.dy = BAR_SPEED
-    else
-        barTwo.dy = 0
-    end
+    gameController.playerOneMovement(barOne)
+    gameController.playerTwoMovement(barTwo)
 
     -- Reset the ball position
     if gameState == 'play' then
@@ -199,20 +193,20 @@ function love.draw()
 
     if gameState == 'start' then
 
-        love.graphics.printf("Welcome to pong!", 0, 20, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf("Press enter to play...", 0, 32, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf(welcomeMessage, 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf(playMessage, 0, 32, VIRTUAL_WIDTH, 'center')
 
     elseif gameState == 'serve' then
 
         love.graphics.printf("Player " .. tostring(servingPlayer) .. "'s turn!", 0, 20, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf("Press enter to serve...", 0, 32, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf(serveMessage, 0, 32, VIRTUAL_WIDTH, 'center')
     
     elseif gameState == 'victory' then
 
         love.graphics.setFont(victoryFont)
         love.graphics.printf("Player " .. tostring(winningPlayer) .. " wins!", 0, 20, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf("Press enter to restart...", 0, 48, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf(restartMessage, 0, 48, VIRTUAL_WIDTH, 'center')
 
     end
 
@@ -227,14 +221,14 @@ function love.draw()
     -- Render ball
     ball:render()
 
-    displayFPS()
+    --[[ displayFPS() ]]
 
     push:apply('end')
 end
 
-function displayFPS()
+--[[ function displayFPS()
     love.graphics.setColor(0, 1, 0, 1)
     love.graphics.setFont(smallFont)
     love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 40, 20)
     love.graphics.setColor(0, 0, 0, 0)
-end
+end ]]
